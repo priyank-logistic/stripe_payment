@@ -8,12 +8,11 @@ const ProductStore = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Fetch products
-    axios.get("https://fakestoreapi.com/products?limit=6").then((res) => {
+    axios.get("https://fakestoreapi.com/products?limit=15").then((res) => {
       const formattedProducts = res.data.map((product) => ({
         id: product.id,
         name: product.title,
-        price: Math.floor(product.price * 100),
+        price: Math.floor(product.price * 1000),
         image: product.image,
       }));
       setProducts(formattedProducts);
@@ -23,7 +22,6 @@ const ProductStore = () => {
   }, []);
 
   const handleBuyNow = (product) => {
-    // Navigate to mediator page with product data
     navigate("/checkout-summary", {
       state: {
         product,

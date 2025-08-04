@@ -71,6 +71,15 @@ const SuccessPage = () => {
           </p>
         </div>
       )}
+
+      <div>
+        <button
+          style={{ marginTop: 20, padding: 10, color: "blue" }}
+          onClick={() => (window.location.href = "/")}
+        >
+          Go to store page
+        </button>
+      </div>
     </div>
   );
 };

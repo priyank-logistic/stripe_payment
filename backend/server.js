@@ -14,8 +14,6 @@ const PLATFORM_FEE_PERCENT = 10;
 const COUPON_CODES = {
   SAVE10: { discount: 10, type: "percentage" },
   SAVE20: { discount: 20, type: "percentage" },
-  FLAT50: { discount: 50, type: "fixed" },
-  WELCOME25: { discount: 25, type: "percentage" },
 };
 
 app.post("/validate-coupon", async (req, res) => {

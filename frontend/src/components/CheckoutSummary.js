@@ -50,7 +50,6 @@ const CheckoutSummary = () => {
         }
         setDiscount(discountAmount);
         setCouponApplied(true);
-        alert(`Coupon applied! You saved ₹${discountAmount.toFixed(2)}`);
       } else {
         alert("Invalid coupon code");
       }
