@@ -10,14 +10,56 @@ app.use(express.json());
 // Platform takes 10%, connected account gets 90%
 const PLATFORM_FEE_PERCENT = 10;
 
+// Sample coupon codes (in a real app, this would be in a database)
+const COUPON_CODES = {
+  SAVE10: { discount: 10, type: "percentage" },
+  SAVE20: { discount: 20, type: "percentage" },
+  FLAT50: { discount: 50, type: "fixed" },
+  WELCOME25: { discount: 25, type: "percentage" },
+};
+
+app.post("/validate-coupon", async (req, res) => {
+  const { couponCode } = req.body;
+
+  if (!couponCode) {
+    return res.status(400).json({ error: "Coupon code is required" });
+  }
+
+  const coupon = COUPON_CODES[couponCode.toUpperCase()];
+
+  if (!coupon) {
+    return res.json({ valid: false, message: "Invalid coupon code" });
+  }
+
+  res.json({
+    valid: true,
+    discount: coupon.discount,
+    type: coupon.type,
+    message: "Coupon applied successfully",
+  });
+});
+
 app.post("/create-checkout-session", async (req, res) => {
-  const { product, connectedAccountId } = req.body;
+  const { product, connectedAccountId, couponCode, discount = 0 } = req.body;
 
   if (!connectedAccountId) {
     return res.status(400).json({ error: "Connected account ID is required" });
   }
 
   try {
+    // Calculate final price after discount
+    let finalPrice = product.price;
+    if (couponCode && discount > 0) {
+      const coupon = COUPON_CODES[couponCode.toUpperCase()];
+      if (coupon) {
+        if (coupon.type === "percentage") {
+          finalPrice = Math.round(product.price * (1 - coupon.discount / 100));
+        } else {
+          finalPrice = Math.max(0, product.price - coupon.discount * 100); // Convert to cents
+        }
+      }
+    }
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: [
@@ -28,14 +70,14 @@ app.post("/create-checkout-session", async (req, res) => {
               name: product.name,
               images: [product.image],
             },
-            unit_amount: product.price,
+            unit_amount: finalPrice,
           },
           quantity: 1,
         },
       ],
       payment_intent_data: {
         application_fee_amount: Math.round(
-          product.price * (PLATFORM_FEE_PERCENT / 100)
+          finalPrice * (PLATFORM_FEE_PERCENT / 100)
         ),
         transfer_data: {
           destination: connectedAccountId,
